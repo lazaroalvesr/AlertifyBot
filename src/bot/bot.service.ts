@@ -49,19 +49,29 @@ export class BotService implements OnModuleInit {
         this.client.on('messageCreate', async (message: Message) => {
             if (message.author.bot || !message.guild) return;
 
+            if (!message.content.startsWith(this.prefix)) return;
+
+            const args = message.content.slice(this.prefix.length).trim().split(/ +/)
+            const comand = args.shift()?.toLowerCase();
+
             if (message.guild.ownerId !== message.author.id) {
                 await message.reply('Você não tem permissão para usar este comando.');
                 return;
             }
 
-            if (message.content.startsWith(`${this.prefix}configurar`)) {
-                await HandleConfigue(message, this.userConfigs);
-            } else if (message.content.startsWith(`${this.prefix}verConfigurações`)) {
-                await HandleSeeSettings(message, this.userConfigs);
-            } else if (message.content.startsWith(`${this.prefix}comandos`)) {
-                await HandleComands(message)
-            } else {
-                await message.reply('❌ Comando não reconhecido. User `!hel` para ver os comandos diponíveis.')
+            switch (comand) {
+                case 'configurar':
+                    await HandleConfigue(message, this.userConfigs);
+                    break
+                case 'verConfigurações':
+                    await HandleSeeSettings(message, this.userConfigs);
+                    break
+                case 'comandos':
+                    await HandleComands(message)
+                    break
+                default:
+                    await message.reply('❌ Comando não reconhecido. User `!hel` para ver os comandos diponíveis.')
+                    break
 
             }
         });
