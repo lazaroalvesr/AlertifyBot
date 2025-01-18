@@ -19,9 +19,8 @@ export async function HandleComands(message: Message) {
         case 'comandos':
             const helpMessage = [
                 '🤖 **Comandos Disponíveis:**',
-                '`!status` - Exibe informações sobre o status do bot e detalhes do servidor.',
-                '`!configurar` - Configura o bot para enviar notificações quando o canal da Twitch estiver ao vivo.',
-                '`!verConfigurações` - Exibe as configurações atuais da Twitch configuradas para o servidor.'
+                '`!configurar` - Configura as notificações da Twitch.',
+                '`!verConfigurações` - Mostra suas configurações atuais.'
             ].join('\n');
             await message.reply(helpMessage);
             break

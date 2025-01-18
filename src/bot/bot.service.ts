@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { EmbedBuilder } from 'discord.js'
-import { CommandsEnum } from 'src/utils/interface';
 
 @Injectable()
 export class BotService implements OnModuleInit {
@@ -57,13 +56,15 @@ export class BotService implements OnModuleInit {
                 return;
             }
 
-            if (message.content.startsWith(`${this.prefix}configurar)`)) {
+            if (message.content.startsWith(`${this.prefix}configurar`)) {
                 await HandleConfigue(message, this.userConfigs);
             } else if (message.content.startsWith(`${this.prefix}verConfigurações`)) {
                 await HandleSeeSettings(message, this.userConfigs);
-            } else if (message.content.startsWith(`${this.prefix}comandos)`)) {
+            } else if (message.content.startsWith(`${this.prefix}comandos`)) {
                 await HandleComands(message)
-            } 
+            } else {
+                await message.reply('❌ Comando não reconhecido. User `!hel` para ver os comandos diponíveis.')
+            }
         });
 
         try {
