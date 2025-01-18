@@ -20,8 +20,16 @@ export class BotService implements OnModuleInit {
         private twitchSerivce: TwitchService,
         private configService: ConfigService) {
     }
+    
+    private isInitialized = false; 
 
     onModuleInit() {
+
+        if (this.isInitialized) {
+            return;
+        }
+        this.isInitialized = true;
+
         this.client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,
