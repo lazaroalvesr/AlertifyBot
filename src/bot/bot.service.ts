@@ -63,7 +63,7 @@ export class BotService implements OnModuleInit {
                 await HandleSeeSettings(message, this.userConfigs);
             } else if (message.content.startsWith(`${this.prefix}comandos)`)) {
                 await HandleComands(message)
-            }
+            } 
         });
 
         try {
