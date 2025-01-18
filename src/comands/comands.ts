@@ -26,7 +26,7 @@ export async function HandleComands(message: Message) {
             await message.reply(helpMessage);
             break
         default:
-            await message.reply('❌ Comando não reconhecido. User `!hel` para ver os comandos diponíveis.')
+            await message.reply('❌ Comando não reconhecido')
     }
 
 }
