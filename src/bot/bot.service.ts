@@ -60,19 +60,18 @@ export class BotService implements OnModuleInit {
             }
 
             switch (comand) {
-                case 'configurar':
+                case '!configurar':
                     await HandleConfigue(message, this.userConfigs);
                     break
-                case 'verConfigurações':
+                case '!verConfigurações':
                     await HandleSeeSettings(message, this.userConfigs);
                     break
-                case 'comandos':
+                case '!comandos':
                     await HandleComands(message)
                     break
                 default:
                     await message.reply('❌ Comando não reconhecido. User `!hel` para ver os comandos diponíveis.')
                     break
-
             }
         });
 
