@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { EmbedBuilder } from 'discord.js'
+import { CommandsEnum } from 'src/utils/interface';
 
 @Injectable()
 export class BotService implements OnModuleInit {
@@ -51,27 +52,17 @@ export class BotService implements OnModuleInit {
 
             if (!message.content.startsWith(this.prefix)) return;
 
-            const args = message.content.slice(this.prefix.length).trim().split(/ +/)
-            const comand = args.shift()?.toLowerCase();
-
             if (message.guild.ownerId !== message.author.id) {
                 await message.reply('Você não tem permissão para usar este comando.');
                 return;
             }
 
-            switch (comand) {
-                case '!configurar':
-                    await HandleConfigue(message, this.userConfigs);
-                    break
-                case '!verConfigurações':
-                    await HandleSeeSettings(message, this.userConfigs);
-                    break
-                case '!comandos':
-                    await HandleComands(message)
-                    break
-                default:
-                    await message.reply('❌ Comando não reconhecido. User `!hel` para ver os comandos diponíveis.')
-                    break
+            if (message.content.startsWith(`${this.prefix}configurar)`)) {
+                await HandleConfigue(message, this.userConfigs);
+            } else if (message.content.startsWith(`${this.prefix}verConfigurações`)) {
+                await HandleSeeSettings(message, this.userConfigs);
+            } else if (message.content.startsWith(`${this.prefix}comandos)`)) {
+                await HandleComands(message)
             }
         });
 
@@ -100,6 +91,7 @@ export class BotService implements OnModuleInit {
             channel.send({ embeds: [embed] });
         }
     }
+
     @Cron(CronExpression.EVERY_10_SECONDS)
     async handleCron() {
         const prisma = new PrismaClient();
