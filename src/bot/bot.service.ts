@@ -104,7 +104,7 @@ export class BotService implements OnModuleInit {
         }
     }
 
-    @Cron(CronExpression.EVERY_10_SECONDS)
+    @Cron(CronExpression.EVERY_30_SECONDS)
     async handleCron() {
         const prisma = new PrismaClient();
 

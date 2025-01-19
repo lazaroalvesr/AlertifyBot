@@ -1,73 +1,47 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# AlertifyBot - Twitch Bot para Notificações ao Vivo  
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+O AlertifyBot é um bot para Twitch desenvolvido para enviar notificações automáticas em servidores do Discord sempre que um streamer estiver ao vivo. Ele verifica periodicamente o status de streams de usuários configurados e envia mensagens de alerta com detalhes sobre o stream para canais de Discord.
 
-## Description
+![App Screenshot](./public/img/AlertifyBot.png)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Funcionalidades
 
-## Installation
+- **Notificação de Stream Ao Vivo**: O bot verifica periodicamente o status de streams de usuários configurados e envia mensagens para canais no Discord quando um streamer estiver ao vivo.
+- **Mensagens Personalizadas**: Envia informações detalhadas sobre o stream, como o título da live, o jogo em transmissão e um link direto para assistir ao vivo.
+- **Mensagens Fixadas**: Após a notificação, a mensagem é automaticamente fixada no canal do Discord para garantir visibilidade.
+- **Verificação de Status**: A cada verificação, o bot também gerencia o status de lives, notificando quando o streamer sai do ar.
+- **Respostas Automatizadas**:Respostas automáticas quando o status do stream muda ou se o canal não está configurado corretamente.
 
-```bash
-$ npm install
-```
 
-## Running the app
+## Tecnologias Utilizadas:
 
-```bash
-# development
-$ npm run start
+- NodeJs
+- NestJs
+- Supabase
+- Prisma
+- Discord.Js
+- Twitch API
+- Cron Jobs
+  
+## Como Funciona:
 
-# watch mode
-$ npm run start:dev
+- O **AlertifyBot** verifica o status de streams configurados a cada intervalo de 30 segundos.
+- Se um streamer estiver ao vivo, ele envia uma mensagem personalizada no canal do Discord configurado.
+- A mensagem inclui detalhes como o título da live, o jogo transmitido e um link para a transmissão ao vivo.
+- Se o streamer não estiver mais ao vivo, o bot atualiza o status e envia uma notificação indicando que a transmissão foi encerrada.
 
-# production mode
-$ npm run start:prod
-```
 
-## Test
+## Authors
 
-```bash
-# unit tests
-$ npm run test
+- [@lazaroalvesr](https://github.com/lazaroalvesr)
 
-# e2e tests
-$ npm run test:e2e
 
-# test coverage
-$ npm run test:cov
-```
+## 🔗 Links
+- [Rifaflow](https://raffle-master-front.vercel.app/)
 
-## Support
+[![portfolio](https://img.shields.io/badge/my_portfolio-000?style=for-the-badge&logo=ko-fi&logoColor=white)](https://www.lazaroalvesr.com/)
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+[![linkedin](https://img.shields.io/badge/linkedin-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/l%C3%A1zaro-alves-r/)
 
-## Stay in touch
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
