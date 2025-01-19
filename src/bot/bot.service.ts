@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { EmbedBuilder } from 'discord.js'
+import { MessageWelcome } from 'src/comands/welcome';
 
 @Injectable()
 export class BotService implements OnModuleInit {
@@ -20,15 +21,9 @@ export class BotService implements OnModuleInit {
         private twitchSerivce: TwitchService,
         private configService: ConfigService) {
     }
-    
-    private isInitialized = false; 
+
 
     onModuleInit() {
-
-        if (this.isInitialized) {
-            return;
-        }
-        this.isInitialized = true;
 
         this.client = new Client({
             intents: [
@@ -54,6 +49,14 @@ export class BotService implements OnModuleInit {
             }
         });
 
+        const comandsHandlers = {
+            ola: async (message: Message) => await MessageWelcome(message),
+            configurar: async (message: Message, userConfigs: Map<string, any>) => await HandleConfigue(message, userConfigs),
+            verConfigurações: async (message: Message, userConfigs: Map<string, any>) => await HandleSeeSettings(message, userConfigs),
+            comandos: async (message: Message) => await HandleComands(message)
+        }
+
+
         this.client.on('messageCreate', async (message: Message) => {
             if (message.author.bot || !message.guild) return;
 
@@ -64,14 +67,14 @@ export class BotService implements OnModuleInit {
                 return;
             }
 
-            if (message.content.startsWith(`${this.prefix}configurar`)) {
-                await HandleConfigue(message, this.userConfigs);
-            } else if (message.content.startsWith(`${this.prefix}verConfigurações`)) {
-                await HandleSeeSettings(message, this.userConfigs);
-            } else if (message.content.startsWith(`${this.prefix}comandos`)) {
-                await HandleComands(message)
+            const comand = message.content.slice(this.prefix.length).trim()
+
+            const handler = comandsHandlers[comand]
+
+            if (handler) {
+                await handler(message, this.userConfigs)
             } else {
-                await message.reply('❌ Comando não reconhecido. User `!hel` para ver os comandos diponíveis.')
+                await message.reply('❌ Comando não reconhecido. Use `!comandos` para ver os comandos disponíveis.');
             }
         });
 
@@ -86,7 +89,7 @@ export class BotService implements OnModuleInit {
     private async sendWelcomeMessage(member: any) {
         const guild = member.guild;
         const channel = guild.channels.cache.find(
-            (ch) => ch.name === 'boas-vindas' && ch instanceof TextChannel
+            (ch: { name: string; }) => ch.name === 'boas-vindas' && ch instanceof TextChannel
         );
 
         if (channel) {

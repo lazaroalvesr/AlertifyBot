@@ -11,9 +11,9 @@ import { ScheduleModule } from '@nestjs/schedule';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    BotModule,
+    BotModule
   ],
   controllers: [],
   providers: [BotService, PrismaService],
 })
-export class AppModule {}
+export class AppModule { }

@@ -7,13 +7,16 @@ export async function HandleSeeSettings(message: Message, userConfigs: Map<strin
     const prisma = new PrismaClient()
 
     const getNameChannel = await prisma.userName.findFirst({
-        where: { guildId: message.guildId }
+        where: { guildId: message.guildId },
+        select:{
+            name: true
+        }
     })
 
     if (userConfig) {
         const configMessage = [
             '**🔧 Configurações de notificações Twitch:**',
-            `**Nome do Canal:** ${getNameChannel ? ' ✅ Configurado' : '❌ Não configurado'}`,
+            `**Nome do Canal:** ${getNameChannel ? `${getNameChannel.name} ✅` : '❌ Não configurado'}`,
         ].join('\n');
 
         await message.reply(configMessage)

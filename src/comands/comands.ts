@@ -19,6 +19,7 @@ export async function HandleComands(message: Message) {
         case 'comandos':
             const helpMessage = [
                 '🤖 **Comandos Disponíveis:**',
+                '`!ola` - Mensagem de Apresentação',
                 '`!configurar` - Configura as notificações da Twitch.',
                 '`!verConfigurações` - Mostra suas configurações atuais.'
             ].join('\n');
