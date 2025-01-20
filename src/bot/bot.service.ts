@@ -131,23 +131,29 @@ export class BotService implements OnModuleInit {
                     const status = await this.twitchSerivce.checkTwitchLiveStatus(channel.name);
 
                     if (status.isLive && !channel.liveNotified) {
+                        const thumbnailUrl = status.streamData.thumbnail_url
+                            .replace('{width}', '640')
+                            .replace('{height}', '360');
+
                         const embed = new EmbedBuilder()
-                            .setColor('#9146FF') 
+                            .setColor('#9146FF')
                             .setTitle(`🎮 **${channel.name}** está ao vivo!`)
                             .setDescription(`📺 **Título da live**: ${status.streamData.title}`)
                             .addFields(
                                 { name: '🎮 Jogo', value: `${status.streamData.game_name}`, inline: false },
                                 { name: '🔗 Assista agora', value: `[Clique aqui para assistir](https://www.twitch.tv/${channel.name})`, inline: false }
                             )
-                            .setFooter({ text: 'Transmitido ao vivo na Twitch', iconURL: 'https://static.twitchcdn.net/assets/favicon-32-32-45108c924f5f3e7a7bcff3c54859921e.png' })
+                            .setImage(thumbnailUrl)
+                            .setFooter({
+                                text: 'Transmitido ao vivo na Twitch',
+                                iconURL: 'https://static.twitchcdn.net/assets/favicon-32-32-45108c924f5f3e7a7bcff3c54859921e.png'
+                            })
                             .setTimestamp();
 
-                        const liveMessage = await discordChannel.send({
-                            content: '@everyone',  
-                            embeds: [embed],
+                        await discordChannel.send({
+                            content: '@everyone',
+                            embeds: [embed]
                         });
-
-                        await liveMessage.pin();
 
                         await prisma.userName.update({
                             where: { guildId: channel.guildId },

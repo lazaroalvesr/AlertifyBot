@@ -30,7 +30,6 @@ export class TwitchService {
                     'Authorization': `Bearer ${this.twitchOauthToken}`,
                 },
             });
-
             if (response.data.data.length > 0) {
                 const stream = response.data.data[0];
                 return {
@@ -38,6 +37,7 @@ export class TwitchService {
                     message: `🎮 O dono do servidor está ao vivo na Twitch! Assista agora https://www.twitch.tv/${stream.user_name}`,
                     streamData: stream,
                 };
+
             } else {
                 return {
                     isLive: false,
@@ -51,6 +51,6 @@ export class TwitchService {
                 message: 'Erro ao verificar o status da transmissão. Tente novamente mais tarde.',
             };
         }
-        
+
     }
 }
