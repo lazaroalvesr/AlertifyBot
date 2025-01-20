@@ -1,25 +1,46 @@
 import { PrismaClient } from "@prisma/client";
-import { Message } from "discord.js";
+import { EmbedBuilder, Message } from "discord.js";
 
-export async function HandleSeeSettings(message: Message, userConfigs: Map<string, any>) {
-    const userConfig = userConfigs.get(message.guild.id);
+export async function HandleSeeSettings(message: Message) {
+    const prisma = new PrismaClient();
 
-    const prisma = new PrismaClient()
+    const args = message.content.split(' ').slice(1);
+    const subComand = args[0];
+    const newChannelName = args.slice(1).join();
 
-    const getNameChannel = await prisma.userName.findFirst({
-        where: { guildId: message.guildId },
-        select:{
-            name: true
+    if (subComand === 'editar') {
+        if (!newChannelName) {
+            await message.reply('❌ Você precisa informar o novo nome do canal. Exemplo: `!verConfigurações editar [novo_nome]`');
+            return;
         }
+
+        const updated = await prisma.userName.update({
+            where: { guildId: message.guildId },
+            data: { name: newChannelName }
+        })
+
+        await message.reply(`✅ Nome do canal atualizado para: **${updated.name}**`);
+        return
+    }
+
+    const existingChannelName = await prisma.userName.findUnique({
+        where: { guildId: message.guildId },
+        select: { name: true }
     })
 
-    if (userConfig) {
-        const configMessage = [
-            '**🔧 Configurações de notificações Twitch:**',
-            `**Nome do Canal:** ${getNameChannel ? `${getNameChannel.name} ✅` : '❌ Não configurado'}`,
-        ].join('\n');
+    if (existingChannelName?.name) {
+        const embed = new EmbedBuilder()
+            .setColor('#7289da')
+            .setTitle('🔧 Configurações de Notificações Twitch')
+            .addFields(
+                { name: 'Nome do Canal:', value: `${existingChannelName.name} ✅`, inline: false },
+            )
+            .addFields(
+                { name: 'Editar Nome: ', value: '**Use:** `!verConfigurações editar [novo_nome]`', inline: false }
+            )
+            .setFooter({ text: 'Se precisar de ajuda, use `!comandos`' });
 
-        await message.reply(configMessage)
+        await message.reply({ embeds: [embed] });
     } else {
         await message.reply('❌ Nenhuma configuração encontrada. Use `!configurar` para configurar as notificações.');
     }

@@ -52,7 +52,7 @@ export class BotService implements OnModuleInit {
         const comandsHandlers = {
             ola: async (message: Message) => await MessageWelcome(message),
             configurar: async (message: Message, userConfigs: Map<string, any>) => await HandleConfigue(message, userConfigs),
-            verConfigurações: async (message: Message, userConfigs: Map<string, any>) => await HandleSeeSettings(message, userConfigs),
+            verConfigurações: async (message: Message) => await HandleSeeSettings(message),
             comandos: async (message: Message) => await HandleComands(message)
         }
 
@@ -67,12 +67,12 @@ export class BotService implements OnModuleInit {
                 return;
             }
 
-            const comand = message.content.slice(this.prefix.length).trim()
+            const [command, ...args] = message.content.slice(this.prefix.length).trim().split(/\s+/);
 
-            const handler = comandsHandlers[comand]
+            const handler = comandsHandlers[command];
 
             if (handler) {
-                await handler(message, this.userConfigs)
+                await handler(message, args)
             } else {
                 await message.reply('❌ Comando não reconhecido. Use `!comandos` para ver os comandos disponíveis.');
             }

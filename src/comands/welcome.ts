@@ -1,11 +1,24 @@
-import { Message } from "discord.js";
+import { Message, EmbedBuilder } from "discord.js";
 
 export async function MessageWelcome(message: Message) {
     const nameGuild = message.guild.name;
 
     try {
-        await message.reply(`🎉 Olá, ${nameGuild}! Eu sou o **AlertifyBot**, e estou aqui para ajudar com as notificações da Twitch e muito mais. Para começar, use \`!comandos\` e veja todas as funcionalidades disponíveis. Caso queira configurar as notificações de quando o seu canal da Twitch estiver ao vivo, use \`!configurar\`! 🚀`);
-    } catch {
-        await message.reply('❌ Comando não reconhecido.');
+        // Criando o embed para a mensagem de boas-vindas
+        const embed = new EmbedBuilder()
+            .setColor('#7289da') // Cor do embed
+            .setTitle(`🎉 Olá, ${nameGuild}!`)
+            .setDescription(`Sou o **AlertifyBot**, e estou aqui para ajudar com as notificações da Twitch e muito mais.`)
+            .addFields(
+                { name: '🔧 Ver Comandos', value: '`!comandos` - Veja todos os comandos disponíveis.', inline: false },
+                { name: '🚀 Configurar Notificações', value: '`!configurar` - Configure notificações quando seu canal estiver ao vivo.', inline: false }
+            )
+            .setFooter({ text: 'Estou aqui para ajudar! Caso precise de algo, basta chamar!' });
+
+        // Enviando o embed
+        await message.reply({ embeds: [embed] });
+    } catch (error) {
+        console.error("Erro ao enviar mensagem:", error);
+        await message.reply('❌ Ocorreu um erro ao tentar enviar a mensagem. Tente novamente mais tarde.');
     }
 }
