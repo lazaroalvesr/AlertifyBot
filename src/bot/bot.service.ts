@@ -1,41 +1,36 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { ChannelType, Client, GatewayIntentBits, Message, TextChannel } from 'discord.js';
-import { HandleConfigue } from '../comands/configure';
-import { HandleSeeSettings } from '../comands/seeSettings';
-import { HandleComands } from '../comands/comands';
+import { ChannelType, Client, CommandInteraction, EmbedBuilder, GatewayIntentBits, TextChannel } from 'discord.js';
 import { TwitchService } from '../twitch/twitch.service';
-import { ConfigService } from '@nestjs/config';
-import { PrismaClient } from '@prisma/client';
+import { RegisterComandsService } from '../registerComands/registerComands.service'; // Ensure this is imported
+import { commandsHandlers } from 'src/comands/commandsHandler';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { EmbedBuilder } from 'discord.js'
-import { MessageWelcome } from 'src/comands/welcome';
+import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class BotService implements OnModuleInit {
     private client: Client;
-    private userConfigs = new Map<string, any>();
     private readonly logger = new Logger(BotService.name);
-    private readonly prefix = '!';
+    private readonly registerComands: RegisterComandsService; // Declare the registerComands property
 
     constructor(
-        private twitchSerivce: TwitchService,
-        private configService: ConfigService) {
+        private twitchService: TwitchService,
+        registerComands: RegisterComandsService, // Inject RegisterComands via the constructor
+    ) {
+        this.registerComands = registerComands; // Initialize the property
     }
 
-
     onModuleInit() {
-
         this.client = new Client({
             intents: [
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildMessages,
                 GatewayIntentBits.MessageContent,
-            ]
+            ],
         });
 
         this.client.on('guildMemberAdd', async (member) => {
-            await this.sendWelcomeMessage(member)
-        })
+            await this.sendWelcomeMessage(member);
+        });
 
         this.client.on('guildCreate', async (guild) => {
             const channel = guild.systemChannel || guild.channels.cache.find(ch => ch.type === ChannelType.GuildText);
@@ -49,32 +44,39 @@ export class BotService implements OnModuleInit {
             }
         });
 
-        const comandsHandlers = {
-            ola: async (message: Message) => await MessageWelcome(message),
-            configurar: async (message: Message, userConfigs: Map<string, any>) => await HandleConfigue(message, userConfigs),
-            verConfigurações: async (message: Message) => await HandleSeeSettings(message),
-            comandos: async (message: Message) => await HandleComands(message)
-        }
+        this.client.once('ready', async () => {
+            console.log(`🤖 Bot está online como ${this.client.user?.tag}!`);
 
-
-        this.client.on('messageCreate', async (message: Message) => {
-            if (message.author.bot || !message.guild) return;
-
-            if (!message.content.startsWith(this.prefix)) return;
-
-            if (message.guild.ownerId !== message.author.id) {
-                await message.reply('Você não tem permissão para usar este comando.');
-                return;
-            }
-
-            const [command, ...args] = message.content.slice(this.prefix.length).trim().split(/\s+/);
-
-            const handler = comandsHandlers[command];
-
-            if (handler) {
-                await handler(message, args)
+            const guild = this.client.guilds.cache.first();
+            if (guild) {
+                const dummyMessage = { guildId: guild.id } as any;
+                await this.registerComands.registerComand(dummyMessage, this.client); // Correctly call the method
             } else {
-                await message.reply('❌ Comando não reconhecido. Use `!comandos` para ver os comandos disponíveis.');
+                console.error('Nenhuma guilda encontrada. Certifique-se de que o bot está em um servidor.');
+            }
+        });
+
+        this.client.on('interactionCreate', async (interaction) => {
+            if (!interaction.isCommand()) return;
+
+            try {
+                if (interaction.guildId && interaction.user.id !== interaction.guild?.ownerId) {
+                    await interaction.reply({
+                        content: 'Você não tem permissão para executar esse comando.',
+                    });
+                    return;
+                }
+                const handler = commandsHandlers[interaction.commandName];
+
+                if (handler) {
+                    await handler.execute(interaction);
+                }
+            } catch (error) {
+                this.logger.error('Erro ao processar o comando', error);
+                await interaction.reply({
+                    content: '❌ Houve um erro ao processar seu comando.',
+                    ephemeral: true,
+                });
             }
         });
 
@@ -128,7 +130,7 @@ export class BotService implements OnModuleInit {
                     const discordChannel = await this.client.channels.fetch(channel.channelId) as TextChannel;
                     if (!discordChannel) continue;
 
-                    const status = await this.twitchSerivce.checkTwitchLiveStatus(channel.name);
+                    const status = await this.twitchService.checkTwitchLiveStatus(channel.name);
 
                     if (status.isLive && !channel.liveNotified) {
                         const thumbnailUrl = status.streamData.thumbnail_url

@@ -1,49 +1,84 @@
 import { PrismaClient } from "@prisma/client";
-import { Message, TextChannel } from "discord.js";
-import { validateUserConfig } from "../utils/validateUser";
+import { ActionRowBuilder, CommandInteraction, ModalBuilder, ModalSubmitInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
+import { validateUserConfig } from "src/utils/validateUser";
 
-export async function HandleConfigue(message: Message, userConfigs: Map<string, any>) {
+export async function HandleConfigue(interaction: CommandInteraction) {
     const prisma = new PrismaClient();
 
-    const filter = (response: Message): boolean => response.author.id === message.author.id;
+    try {
+        const existingChannelName = await prisma.userName.findUnique({
+            where: { guildId: interaction.guildId },
+            select: { name: true }
+        })
 
-    if (message.channel instanceof TextChannel) {
+        if (existingChannelName) {
+            await interaction.reply({
+                content: "❌ Nome do canal já preenchido.",
+                ephemeral: true
+            })
+            return
+        }
+
+        const modal = new ModalBuilder()
+            .setCustomId('configTwitchModal')
+            .setTitle('Configurar canal da Twitch');
+
+        const twitchChannelInput = new TextInputBuilder()
+            .setCustomId('twitchChannelName')
+            .setLabel('Nome do seu canal da twitch')
+            .setStyle(TextInputStyle.Short)
+            .setPlaceholder('Digite o nome do seu canal')
+            .setRequired(true)
+
+        const firstActionRow = new ActionRowBuilder<TextInputBuilder>()
+            .addComponents(twitchChannelInput)
+
+        modal.addComponents(firstActionRow);
+
+        await interaction.showModal(modal)
+
         try {
-            const existingChannelName = await prisma.userName.findUnique({
-                where: { guildId: message.guildId },
-                select: {
-                    name: true
+            const filter = (i: ModalSubmitInteraction) =>
+                i.customId === 'configTwitchModal' &&
+                i.user.id === interaction.user.id
+
+            const modalResponse = await interaction.awaitModalSubmit({
+                filter,
+                time: 60000
+            })
+
+            const twitchChannelName = modalResponse.fields.getTextInputValue('twitchChannelName');
+
+            const input = await prisma.userName.create({
+                data: {
+                    name: twitchChannelName,
+                    guildId: interaction.guildId,
+                    channelId: interaction.channelId
                 }
             })
-            
-            if (existingChannelName) {
-                return await message.reply("❌ Nome do canal Já preenchido.");
-            }
-            
-            if (!existingChannelName) {
-                await message.reply("Por favor, digite o **nome do seu canal da Twitch**:");
 
-                const channelResponse = await message.channel.awaitMessages({ filter, max: 1, time: 60000 });
+            const validConfig = await validateUserConfig(input)
 
-                const twitchChannelName = channelResponse.first()?.content;
+            const userConfigs = new Map<string, any>();
+            userConfigs.set(interaction.guildId, validConfig);
 
-                const input = await prisma.userName.create({
-                    data: { name: twitchChannelName, guildId: message.guildId, channelId: message.channelId }
-                })
-
-                const validConfig = await validateUserConfig(input);
-
-                userConfigs.set(message.guild.id, validConfig);
-
-                await message.reply(`✅ Canal **${twitchChannelName}** registrado com sucesso!`);
-            }
-
+            await modalResponse.reply({
+                content: `✅ Canal **${twitchChannelName}** registrado com sucesso!`,
+                ephemeral: true
+            })
         } catch (error) {
-            await message.reply("❌ Configuração inválida ou tempo expirado. Por favor, tente novamente.");
-        } finally {
-            await prisma.$disconnect();
+            await interaction.followUp({
+                content: "❌ Tempo expirado ou ocorreu um erro. Por favor, tente novamente.",
+                ephemeral: true
+            })
         }
-    } else {
-        await message.reply("❌ Este comando só pode ser usado em um canal de texto.");
+
+    } catch (error) {
+        await interaction.reply({
+            content: "❌ Ocorreu um erro ao configurar o canal. Por favor, tente novamente.",
+            ephemeral: true
+        });
+    } finally {
+        await prisma.$disconnect();
     }
 }

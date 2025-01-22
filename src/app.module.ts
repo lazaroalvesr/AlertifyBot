@@ -4,6 +4,8 @@ import { BotModule } from './bot/bot.module';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { RegisterComandsService } from './registerComands/registerComands.service';
+import { RegisterComandsModule } from './registerComands/registerComands..module';
 
 @Module({
   imports: [
@@ -11,9 +13,10 @@ import { ScheduleModule } from '@nestjs/schedule';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    BotModule
+    BotModule,
+    RegisterComandsModule
   ],
   controllers: [],
-  providers: [BotService, PrismaService],
+  providers: [BotService, PrismaService, RegisterComandsService],
 })
 export class AppModule { }
