@@ -6,6 +6,8 @@ import { PrismaService } from './prisma/prisma.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RegisterComandsService } from './registerComands/registerComands.service';
 import { RegisterComandsModule } from './registerComands/registerComands..module';
+import { StatusModule } from './status/status.module';
+import { CommandsModule } from './commands/commands.module';
 
 @Module({
   imports: [
@@ -14,7 +16,9 @@ import { RegisterComandsModule } from './registerComands/registerComands..module
       isGlobal: true,
     }),
     BotModule,
-    RegisterComandsModule
+    RegisterComandsModule,
+    StatusModule,
+    CommandsModule
   ],
   controllers: [],
   providers: [BotService, PrismaService, RegisterComandsService],

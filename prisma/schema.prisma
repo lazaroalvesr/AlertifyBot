@@ -10,8 +10,8 @@ datasource db {
 
 model userName {
   id           String  @id @default(uuid())
-  name         String
+  TwitchChannelName         String
   guildId      String  @unique
-  channelId    String  
+  DiscordChannelId    String  
   liveNotified Boolean @default(false)
 }

@@ -1,4 +1,4 @@
-import { CommandInteraction, EmbedBuilder } from "discord.js";
+import { CommandInteraction, EmbedBuilder, MessageFlags } from "discord.js";
 
 export async function HandleMessageWelcome(interaction: CommandInteraction) {
     const nameGuild = interaction.guild.name;
@@ -18,7 +18,7 @@ export async function HandleMessageWelcome(interaction: CommandInteraction) {
     } catch (error) {
         await interaction.reply({
             content: '❌ Ocorreu um erro ao tentar enviar a mensagem. Tente novamente mais tarde.',
-            ephemeral: true
+            flags: MessageFlags.Ephemeral
         });
     }
 }

@@ -1,82 +1,78 @@
 import { PrismaClient } from "@prisma/client";
-import { ActionRowBuilder, CommandInteraction, ModalBuilder, ModalSubmitInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
-import { validateUserConfig } from "src/utils/validateUser";
+import { ActionRowBuilder, CommandInteraction, MessageFlags, ModalBuilder, ModalSubmitInteraction, TextInputBuilder, TextInputStyle } from "discord.js";
+import { validateUserConfig } from "../utils/validateUser";
+const prisma = new PrismaClient();
 
-export async function HandleConfigue(interaction: CommandInteraction) {
-    const prisma = new PrismaClient();
+export async function HandleConfigureTwitchChannelName(interaction: CommandInteraction) {
 
     try {
         const existingChannelName = await prisma.userName.findUnique({
             where: { guildId: interaction.guildId },
-            select: { name: true }
+            select: { TwitchChannelName: true }
         })
 
         if (existingChannelName) {
-            await interaction.reply({
-                content: "❌ Nome do canal já preenchido.",
-                ephemeral: true
+            return interaction.reply({
+                content: "❌ Canal da Twitch já configurado para este servidor.",
+                flags: MessageFlags.Ephemeral
             })
-            return
         }
 
         const modal = new ModalBuilder()
             .setCustomId('configTwitchModal')
-            .setTitle('Configurar canal da Twitch');
+            .setTitle('Configurar Notificações da Twitch')
 
         const twitchChannelInput = new TextInputBuilder()
             .setCustomId('twitchChannelName')
-            .setLabel('Nome do seu canal da twitch')
+            .setLabel('Nome do seu canal da Twitch')
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder('Digite o nome do seu canal')
+            .setPlaceholder('Digite o nome do canal')
             .setRequired(true)
 
-        const firstActionRow = new ActionRowBuilder<TextInputBuilder>()
+        const actionRow = new ActionRowBuilder<TextInputBuilder>()
             .addComponents(twitchChannelInput)
 
-        modal.addComponents(firstActionRow);
-
+        modal.addComponents(actionRow)
         await interaction.showModal(modal)
 
         try {
-            const filter = (i: ModalSubmitInteraction) =>
-                i.customId === 'configTwitchModal' &&
-                i.user.id === interaction.user.id
-
-            const modalResponse = await interaction.awaitModalSubmit({
-                filter,
+            const modalReponse = await interaction.awaitModalSubmit({
+                filter: (i: ModalSubmitInteraction) =>
+                    i.customId === 'configTwitchModal' && i.user.id === interaction.user.id,
                 time: 60000
             })
 
-            const twitchChannelName = modalResponse.fields.getTextInputValue('twitchChannelName');
+            const twitchChannelName = modalReponse.fields.getTextInputValue('twitchChannelName')
 
-            const input = await prisma.userName.create({
+            const userCOnfig = await prisma.userName.create({
                 data: {
-                    name: twitchChannelName,
+                    TwitchChannelName: twitchChannelName,
                     guildId: interaction.guildId,
-                    channelId: interaction.channelId
+                    DiscordChannelId: interaction.channelId
                 }
             })
 
-            const validConfig = await validateUserConfig(input)
+            const validConfig = await validateUserConfig(userCOnfig)
+            const userConfigs = new Map<string, any>()
+            userConfigs.set(interaction.guildId, validConfig)
 
-            const userConfigs = new Map<string, any>();
-            userConfigs.set(interaction.guildId, validConfig);
-
-            await modalResponse.reply({
-                content: `✅ Canal **${twitchChannelName}** registrado com sucesso!`,
-                ephemeral: true
+            await modalReponse.reply({
+                content: `✅ Canal da Twitch **${twitchChannelName}** registrado com sucesso!`,
+                flags: MessageFlags.Ephemeral
             })
-        } catch (error) {
+        } catch (submissionError) {
+            console.error('Modal submission error:', submissionError);
             await interaction.followUp({
-                content: "❌ Tempo expirado ou ocorreu um erro. Por favor, tente novamente.",
-                ephemeral: true
-            })
+                content: "❌ Tempo expirado ou erro na configuração. Tente novamente.",
+                flags: MessageFlags.Ephemeral
+            });
         }
 
-    } catch (error) {
+    } catch (configError) {
+        console.error('Configuration error:', configError);
         await interaction.reply({
-            content: "❌ Ocorreu um erro ao configurar o canal. Por favor, tente novamente.",
-            ephemeral: true
+            content: "❌ Erro ao configurar o canal. Verifique os detalhes e tente novamente.",
+            flags: MessageFlags.Ephemeral
         });
     } finally {
         await prisma.$disconnect();

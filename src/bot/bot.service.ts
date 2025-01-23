@@ -1,22 +1,22 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { ChannelType, Client, CommandInteraction, EmbedBuilder, GatewayIntentBits, TextChannel } from 'discord.js';
+import { ChannelType, Client, EmbedBuilder, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
 import { TwitchService } from '../twitch/twitch.service';
-import { RegisterComandsService } from '../registerComands/registerComands.service'; // Ensure this is imported
-import { commandsHandlers } from 'src/comands/commandsHandler';
+import { RegisterComandsService } from '../registerComands/registerComands.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaClient } from '@prisma/client';
+import { CommandsService } from '../commands/commands.service';
 
 @Injectable()
 export class BotService implements OnModuleInit {
     private client: Client;
     private readonly logger = new Logger(BotService.name);
-    private readonly registerComands: RegisterComandsService; // Declare the registerComands property
 
     constructor(
         private twitchService: TwitchService,
-        registerComands: RegisterComandsService, // Inject RegisterComands via the constructor
+        private readonly registerComands: RegisterComandsService,
+        private readonly commandService: CommandsService
     ) {
-        this.registerComands = registerComands; // Initialize the property
+        this.registerComands = registerComands;
     }
 
     onModuleInit() {
@@ -49,8 +49,7 @@ export class BotService implements OnModuleInit {
 
             const guild = this.client.guilds.cache.first();
             if (guild) {
-                const dummyMessage = { guildId: guild.id } as any;
-                await this.registerComands.registerComand(dummyMessage, this.client); // Correctly call the method
+                await this.registerComands.registerComands(this.client);
             } else {
                 console.error('Nenhuma guilda encontrada. Certifique-se de que o bot está em um servidor.');
             }
@@ -63,25 +62,31 @@ export class BotService implements OnModuleInit {
                 if (interaction.guildId && interaction.user.id !== interaction.guild?.ownerId) {
                     await interaction.reply({
                         content: 'Você não tem permissão para executar esse comando.',
+                        flags: MessageFlags.Ephemeral
                     });
-                    return;
+                    return
                 }
-                const handler = commandsHandlers[interaction.commandName];
+                const handler = (await this.commandService.comandsHandler())[interaction.commandName]
 
                 if (handler) {
-                    await handler.execute(interaction);
+                    await handler.execute(interaction)
+                } else {
+                    await interaction.reply({
+                        content: 'Comando não encontrado.',
+                        flags: MessageFlags.Ephemeral
+                    })
                 }
             } catch (error) {
                 this.logger.error('Erro ao processar o comando', error);
                 await interaction.reply({
                     content: '❌ Houve um erro ao processar seu comando.',
-                    ephemeral: true,
+                    flags: MessageFlags.Ephemeral
                 });
             }
         });
 
         try {
-            this.client.login(process.env.BOT_TOKEN);
+            this.client.login(process.env.DISCORD_TOKEN);
             this.logger.log('🚀 Bot iniciou com sucesso e está online! 🎮');
         } catch (error) {
             this.logger.error('Erro ao fazer login do bot:', error);
@@ -114,23 +119,23 @@ export class BotService implements OnModuleInit {
             const channels = await prisma.userName.findMany({
                 select: {
                     guildId: true,
-                    channelId: true,
-                    name: true,
+                    DiscordChannelId: true,
+                    TwitchChannelName: true,
                     liveNotified: true
                 }
             })
 
             for (const channel of channels) {
                 try {
-                    if (!channel.channelId) {
+                    if (!channel.DiscordChannelId) {
                         this.logger.warn(`Canal não configurado para o servidor ${channel.guildId}`);
                         continue
                     }
 
-                    const discordChannel = await this.client.channels.fetch(channel.channelId) as TextChannel;
+                    const discordChannel = await this.client.channels.fetch(channel.DiscordChannelId) as TextChannel;
                     if (!discordChannel) continue;
 
-                    const status = await this.twitchService.checkTwitchLiveStatus(channel.name);
+                    const status = await this.twitchService.checkTwitchLiveStatus(channel.TwitchChannelName);
 
                     if (status.isLive && !channel.liveNotified) {
                         const thumbnailUrl = status.streamData.thumbnail_url
@@ -139,11 +144,11 @@ export class BotService implements OnModuleInit {
 
                         const embed = new EmbedBuilder()
                             .setColor('#9146FF')
-                            .setTitle(`🎮 **${channel.name}** está ao vivo!`)
+                            .setTitle(`🎮 **${channel.TwitchChannelName}** está ao vivo!`)
                             .setDescription(`📺 **Título da live**: ${status.streamData.title}`)
                             .addFields(
                                 { name: '🎮 Jogo', value: `${status.streamData.game_name}`, inline: false },
-                                { name: '🔗 Assista agora', value: `[Clique aqui para assistir](https://www.twitch.tv/${channel.name})`, inline: false }
+                                { name: '🔗 Assista agora', value: `[Clique aqui para assistir](https://www.twitch.tv/${channel.TwitchChannelName})`, inline: false }
                             )
                             .setImage(thumbnailUrl)
                             .setFooter({
@@ -168,7 +173,7 @@ export class BotService implements OnModuleInit {
                             where: { guildId: channel.guildId },
                             data: { liveNotified: false }
                         }),
-                            await discordChannel.send(`❌ O canal **${channel.name}** não está mais ao vivo.`);
+                            await discordChannel.send(`❌ O canal **${channel.TwitchChannelName}** não está mais ao vivo.`);
                     }
                 } catch (error) {
                     this.logger.error(`Erro ao processar servidor ${channel.guildId}:`, error);
