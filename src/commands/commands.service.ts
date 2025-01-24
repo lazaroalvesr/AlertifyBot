@@ -6,10 +6,13 @@ import { HandleEditChannelName } from '../comands/editChannelName';
 import { HandleSeeSettings } from '../comands/seeSettings';
 import { HandleMessageWelcome } from '../comands/welcome';
 import { DeleteAccountService } from '../delete-account/deleteAccount.service';
+import { ClearBotMessageService } from 'src/clear-bot-message/clear-bot-message.service';
 
 @Injectable()
 export class CommandsService {
-    constructor(private readonly deleteAccount: DeleteAccountService) { }
+    constructor(
+        private readonly clearBotMessageService: ClearBotMessageService,
+        private readonly deleteAccount: DeleteAccountService) { }
 
     comandsHandler() {
         return {
@@ -53,7 +56,12 @@ export class CommandsService {
                     }
                 }
             },
-
+            limparmensagensbot: {
+                data: new SlashCommandBuilder()
+                    .setName('limparmensagensbot')
+                    .setDescription('Apagar as mensagens enviadas pelo bot no canal atual.'),
+                execute: async (interaction: CommandInteraction) => await this.clearBotMessageService.clear(interaction)
+            }
         }
     }
 }

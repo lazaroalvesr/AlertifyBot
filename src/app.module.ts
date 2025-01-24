@@ -9,6 +9,8 @@ import { RegisterComandsModule } from './registerComands/registerComands..module
 import { CommandsModule } from './commands/commands.module';
 import { DeleteAccountModule } from './delete-account/deleteAccount.module';
 import { DeleteAccountService } from './delete-account/deleteAccount.service';
+import { ClearBotMessageModule } from './clear-bot-message/clear-bot-message.module';
+import { ClearBotMessageService } from './clear-bot-message/clear-bot-message.service';
 
 @Module({
   imports: [
@@ -19,9 +21,10 @@ import { DeleteAccountService } from './delete-account/deleteAccount.service';
     BotModule,
     RegisterComandsModule,
     CommandsModule,
-    DeleteAccountModule
+    DeleteAccountModule,
+    ClearBotMessageModule
   ],
   controllers: [],
-  providers: [BotService, PrismaService, RegisterComandsService, DeleteAccountService],
+  providers: [BotService, PrismaService, RegisterComandsService, DeleteAccountService, ClearBotMessageService],
 })
 export class AppModule { }
