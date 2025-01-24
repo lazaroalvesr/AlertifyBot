@@ -4,6 +4,7 @@
 O AlertifyBot é um bot para Twitch desenvolvido para enviar notificações automáticas em servidores do Discord sempre que um streamer estiver ao vivo. Ele verifica periodicamente o status de streams configurados e envia mensagens de alerta com detalhes sobre o stream diretamente para canais no Discord.
 
 ![App Screenshot](./public/img/AlertifyBot.png)
+<img src="./public/img/AlertifyBot.png" alt="App Screenshot" width="400" />
 
 ##  **🚀 Funcionalidades**
 
