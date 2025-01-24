@@ -6,7 +6,7 @@ import { HandleEditChannelName } from '../comands/editChannelName';
 import { HandleSeeSettings } from '../comands/seeSettings';
 import { HandleMessageWelcome } from '../comands/welcome';
 import { DeleteAccountService } from '../delete-account/deleteAccount.service';
-import { ClearBotMessageService } from 'src/clear-bot-message/clear-bot-message.service';
+import { ClearBotMessageService } from '../clear-bot-message/clear-bot-message.service';
 
 @Injectable()
 export class CommandsService {
