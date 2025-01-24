@@ -5,9 +5,8 @@ import { CommandsService } from "../commands/commands.service";
 @Injectable()
 export class RegisterComandsService {
     private readonly logger = new Logger(RegisterComandsService.name)
-    constructor(
-        private readonly commandsService: CommandsService
-    ) { }
+
+    constructor(private readonly commandsService: CommandsService) { }
 
 
     async registerComands(client: Client) {

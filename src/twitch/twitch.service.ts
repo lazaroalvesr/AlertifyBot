@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import { TwitchApiUrlProps } from '../utils/interface';
 
 @Injectable()
 export class TwitchService {
@@ -17,12 +18,13 @@ export class TwitchService {
         }
     }
 
-    public async checkTwitchLiveStatus(twitchUserName: string) {
+    public async checkTwitchLiveStatus(twitchUserName: string): Promise<TwitchApiUrlProps> {
         if (!twitchUserName || typeof twitchUserName !== 'string') {
-            throw new Error('Twitch username is invalid or not provided');
+            throw new Error('Twitch username é inválido');
         }
 
         try {
+
             const response = await axios.get(this.twitchApiUrl, {
                 params: { user_login: twitchUserName },
                 headers: {
@@ -42,6 +44,7 @@ export class TwitchService {
                 return {
                     isLive: false,
                     message: `O canal ${twitchUserName} não está ao vivo no momento.`,
+                    streamData: null
                 };
             }
         } catch (error) {
@@ -49,8 +52,10 @@ export class TwitchService {
             return {
                 isLive: false,
                 message: 'Erro ao verificar o status da transmissão. Tente novamente mais tarde.',
+                streamData: null
             };
         }
 
     }
+
 }

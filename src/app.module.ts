@@ -6,8 +6,9 @@ import { PrismaService } from './prisma/prisma.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { RegisterComandsService } from './registerComands/registerComands.service';
 import { RegisterComandsModule } from './registerComands/registerComands..module';
-import { StatusModule } from './status/status.module';
 import { CommandsModule } from './commands/commands.module';
+import { DeleteAccountModule } from './delete-account/deleteAccount.module';
+import { DeleteAccountService } from './delete-account/deleteAccount.service';
 
 @Module({
   imports: [
@@ -17,10 +18,10 @@ import { CommandsModule } from './commands/commands.module';
     }),
     BotModule,
     RegisterComandsModule,
-    StatusModule,
-    CommandsModule
+    CommandsModule,
+    DeleteAccountModule
   ],
   controllers: [],
-  providers: [BotService, PrismaService, RegisterComandsService],
+  providers: [BotService, PrismaService, RegisterComandsService, DeleteAccountService],
 })
 export class AppModule { }

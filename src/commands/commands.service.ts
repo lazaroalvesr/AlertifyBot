@@ -5,13 +5,13 @@ import { HandleConfigureTwitchChannelName } from '../comands/configure';
 import { HandleEditChannelName } from '../comands/editChannelName';
 import { HandleSeeSettings } from '../comands/seeSettings';
 import { HandleMessageWelcome } from '../comands/welcome';
-import { StatusService } from '../status/status.service';
+import { DeleteAccountService } from '../delete-account/deleteAccount.service';
 
 @Injectable()
 export class CommandsService {
-    constructor(private readonly statusService: StatusService) { }  
+    constructor(private readonly deleteAccount: DeleteAccountService) { }
 
-    async comandsHandler() {
+    comandsHandler() {
         return {
             ola: {
                 data: new SlashCommandBuilder()
@@ -37,18 +37,23 @@ export class CommandsService {
                     .setDescription('Editar o nome do canal de notificações da Twitch.'),
                 execute: async (interaction: CommandInteraction) => await HandleEditChannelName(interaction),
             },
-            status: {
-                data: new SlashCommandBuilder()
-                    .setName('statusdocanal')
-                    .setDescription('Ver status do'),
-                execute: async (interaction: CommandInteraction) => await this.statusService.seeStatusChannel(interaction)
-            },
             comandos: {
                 data: new SlashCommandBuilder()
                     .setName('comandos')
                     .setDescription('Lista todos os comandos disponíveis.'),
                 execute: async (interaction: CommandInteraction) => await HandleCommands(interaction),
             },
+            deletarconta: {
+                data: new SlashCommandBuilder()
+                    .setName('deletarconta')
+                    .setDescription('Excluir a conta associada ao bot. Tenha certeza antes de proceder!'),
+                execute: async (interaction: CommandInteraction) => {
+                    if (interaction.isCommand()) {
+                        await this.deleteAccount.delete(interaction.guildId, interaction);
+                    }
+                }
+            },
+
         }
     }
 }

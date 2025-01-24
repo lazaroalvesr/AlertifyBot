@@ -14,7 +14,7 @@ export async function HandleCommands(interaction: CommandInteraction) {
                     { name: '✨ `/ola`', value: '**Mensagem de Apresentação**', inline: false },
                     { name: '🔧 `/configurar`', value: '**Configura as notificações da Twitch**', inline: false },
                     { name: '📜 `/verconfiguracoes`', value: '**Mostra suas configurações atuais**', inline: false },
-                    { name: '📊 `/status`', value: 'Exibe informações detalhadas sobre o seu canal na Twitch', inline: false }
+                    { name: '📊 `/statusdocanal`', value: 'Exibe informações detalhadas sobre o seu canal na Twitch', inline: false }
                 )
                 .setFooter({ text: '💡 Use os comandos acima para interagir com o bot e configurar suas preferências!' });
 

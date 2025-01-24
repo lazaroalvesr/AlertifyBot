@@ -1,10 +1,11 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { ChannelType, Client, EmbedBuilder, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
+import { ButtonInteraction, ChannelType, Client, EmbedBuilder, GatewayIntentBits, MessageFlags, TextChannel } from 'discord.js';
 import { TwitchService } from '../twitch/twitch.service';
 import { RegisterComandsService } from '../registerComands/registerComands.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaClient } from '@prisma/client';
 import { CommandsService } from '../commands/commands.service';
+import { DeleteAccountService } from '../delete-account/deleteAccount.service';
 
 @Injectable()
 export class BotService implements OnModuleInit {
@@ -14,7 +15,8 @@ export class BotService implements OnModuleInit {
     constructor(
         private twitchService: TwitchService,
         private readonly registerComands: RegisterComandsService,
-        private readonly commandService: CommandsService
+        private readonly commandService: CommandsService,
+        private readonly deleteAccountService: DeleteAccountService
     ) {
         this.registerComands = registerComands;
     }
@@ -37,7 +39,7 @@ export class BotService implements OnModuleInit {
 
             if (channel) {
                 try {
-                    await channel.send(`🎉 Olá, ${guild.name}! Eu sou o **AlertifyBot**, e estou aqui para ajudar com as notificações da Twitch e muito mais. Para começar, use \`!comandos\` e veja todas as funcionalidades disponíveis. Caso queira configurar as notificações de quando o seu canal da Twitch estiver ao vivo, use \`!configurar\`! 🚀`);
+                    await channel.send(`🎉 Olá, ${guild.name}! Eu sou o **AlertifyBot**, e estou aqui para ajudar com as notificações da Twitch e muito mais. Para começar, use \`/comandos\` e veja todas as funcionalidades disponíveis. Caso queira configurar as notificações de quando o seu canal da Twitch estiver ao vivo, use \`/configurar\` 🚀`);
                 } catch (error) {
                     this.logger.error('Erro ao enviar mensagem de boas-vindas.', error);
                 }
@@ -56,34 +58,42 @@ export class BotService implements OnModuleInit {
         });
 
         this.client.on('interactionCreate', async (interaction) => {
-            if (!interaction.isCommand()) return;
-
             try {
-                if (interaction.guildId && interaction.user.id !== interaction.guild?.ownerId) {
-                    await interaction.reply({
-                        content: 'Você não tem permissão para executar esse comando.',
-                        flags: MessageFlags.Ephemeral
-                    });
-                    return
-                }
-                const handler = (await this.commandService.comandsHandler())[interaction.commandName]
+                if (interaction.isCommand()) {
+                    if (interaction.guildId && interaction.user.id !== interaction.guild?.ownerId) {
+                        await interaction.reply({
+                            content: 'Você não tem permissão para executar esse comando.',
+                            flags: MessageFlags.Ephemeral
+                        })
+                        return
+                    }
 
-                if (handler) {
-                    await handler.execute(interaction)
-                } else {
+                    const handler = (await this.commandService.comandsHandler())[interaction.commandName]
+
+                    if (handler) {
+                        await handler.execute(interaction)
+                    } else {
+                        await interaction.reply({
+                            content: 'Comando não encontrado.',
+                            flags: MessageFlags.Ephemeral
+                        })
+                    }
+                } else if (interaction.isButton()) {
+                    const buttonInteraction = interaction as ButtonInteraction
+                    if (['confirm_delete', 'cancel_delete'].includes(buttonInteraction.customId)) {
+                        await this.deleteAccountService.handleButtonInteraction(buttonInteraction)
+                    }
+                }
+            } catch (error) {
+                this.logger.error('Erro ao processar a interação', error)
+                if (interaction.isRepliable()) {
                     await interaction.reply({
-                        content: 'Comando não encontrado.',
+                        content: '❌ Houve um erro ao processar sua interação.',
                         flags: MessageFlags.Ephemeral
                     })
                 }
-            } catch (error) {
-                this.logger.error('Erro ao processar o comando', error);
-                await interaction.reply({
-                    content: '❌ Houve um erro ao processar seu comando.',
-                    flags: MessageFlags.Ephemeral
-                });
             }
-        });
+        })
 
         try {
             this.client.login(process.env.DISCORD_TOKEN);
