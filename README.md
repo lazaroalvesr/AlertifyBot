@@ -52,7 +52,7 @@ O AlertifyBot é um bot para Twitch desenvolvido para enviar notificações auto
 
 ## **Exemplo de notificação enviada pelo bot:**
 
-![Demonstração do Card](./public/img/CardAlertifyBot)
+![Demonstração do Card](./public/img/CardAlertifyBot.png)
 
 
 ## **📦 Configuração**
